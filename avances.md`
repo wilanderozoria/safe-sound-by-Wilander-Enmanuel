@@ -1,0 +1,81 @@
+# Bitácora de Avances y Documentación Técnica - SafeSound
+
+Este documento es la fuente de verdad del proyecto. Contiene todo el historial, la arquitectura técnica y la configuración necesaria para retomar el desarrollo en cualquier momento.
+
+## 1. Estado Inicial (Baseline)
+Antes de la intervención, SafeSound era un prototipo de monitoreo acústico:
+- **Arquitectura**: Cliente $\rightarrow$ Node.js Server $\rightarrow$ Monitor.
+- **Transporte**: Socket.io.
+- **Procesamiento**: Local en el navegador (AudioContext $\rightarrow$ AnalyserNode $\rightarrow$ RMS $\rightarrow$ dB relativo).
+- **Limitación Crítica**: Dependencia de un servidor Node.js activo para conectar el teléfono con el monitor.
+
+## 2. Objetivo de la Intervención
+Convertir SafeSound en una aplicación **totalmente distribuida** y compatible con **GitHub Pages**, eliminando la necesidad de un servidor propio mediante el uso de **Supabase**.
+
+## 3. Arquitectura Técnica Implementada
+
+### A. Capa de Datos y Comunicación (Supabase)
+Se sustituyó el servidor Node.js por una arquitectura *Backend-as-a-Service* (BaaS):
+- **Base de Datos**: PostgreSQL en Supabase.
+- **Sincronización**: Supabase Realtime (Postgres Changes).
+- **Flujo de Datos**:
+  - **Emisor (Teléfono)**: `AudioEngine` $\rightarrow$ `SupabaseClient.sendLevel()` $\rightarrow$ `upsert` en tabla `classroom_levels`.
+  - **Receptor (Monitor)**: `SupabaseClient.subscribeToLevels()` $\rightarrow$ Evento de cambio de fila $\rightarrow$ `MonitorDashboard.updateRoom()`.
+
+### B. Esquema de Base de Datos (SQL)
+La tabla `classroom_levels` está diseñada para evitar el crecimiento infinito de datos, manteniendo solo el último estado por aula:
+- **Columnas**:
+    - `room_id` (TEXT, PRIMARY KEY): Identificador único del aula.
+    - `level` (FLOAT): Nivel acústico relativo.
+    - `status` (TEXT): Clasificación (`normal`, `warning`, `excessive`).
+    - `updated_at` (TIMESTAMP): Fecha y hora de la última medición.
+- **Seguridad (RLS)**:
+    - RLS Activado.
+    - Políticas públicas de `SELECT`, `INSERT` y `UPDATE` (Configuración MVP sin autenticación).
+- **Realtime**: La tabla está añadida a la publicación `supabase_realtime`.
+
+### C. Lógica de Procesamiento de Audio
+Se mantuvo y optimizó el motor existente:
+- **Cálculo**: `RMS $\rightarrow$ 20 * log10(RMS) + 90 + calibration`.
+- **Suavizado**: EMA (Exponential Moving Average) con $\alpha = 0.22$ para evitar saltos bruscos en la UI.
+- **Frecuencia de Envío**: Actualización a Supabase cada **500ms** para optimizar batería y tráfico.
+
+### D. Interfaz de Usuario (UI/UX)
+- **Pantalla de Inicio**: Implementada como un *overlay* (`#welcomeScreen`) con dos rutas:
+    1. **Modo Sensor**: Configuración de `room_id` (persistido en `localStorage`) e inicio de micrófono.
+    2. **Modo Monitor**: Carga de estado inicial de Supabase y suscripción a cambios.
+- **Diseño**: Responsivo, basado en tarjetas, optimizado para dispositivos móviles.
+
+## 4. Guía de Configuración y Despliegue
+
+### 4.1. Credenciales
+Las credenciales se encuentran en `src/config/supabase-config.js`:
+- `url`: URL del proyecto Supabase.
+- `anonKey`: Clave pública `sb_publishable_...`.
+
+### 4.2. Despliegue en GitHub Pages
+1. El frontend es estático. Se despliega mediante el flujo estándar de GitHub Pages.
+2. Las dependencias externas (como `@supabase/supabase-js`) se cargan vía **ESM CDN** para evitar la necesidad de un paso de compilación (`npm build`).
+
+## 5. Mapa de Archivos Críticos
+
+| Archivo | Propósito |
+|:---|:---|
+| `index.html` | Estructura de la App y Definición de Secciones. |
+| `src/app.js` | Orquestador principal, gestión de modos y ciclos de envío. |
+| `src/networking/supabase-client.js` | Wrapper de la API de Supabase (upsert y Realtime). |
+| `src/audio/audio-engine.js` | Captura de audio y cálculo de RMS. |
+| `src/utils/measurement.js` | Matemáticas de dB, suavizado y clasificación. |
+| `src/ui/monitor-dashboard.js` | Renderizado de tarjetas y agregación de niveles. |
+| `src/config/supabase-config.js` | Endpoints y claves de la API. |
+| `migrations/001_init_classroom_levels.sql` | Esquema de base de datos y políticas RLS. |
+
+## 6. Pendientes y Futuras Mejoras
+- [ ] **Autenticación**: Implementar Supabase Auth para proteger el acceso al Monitor y restringir quién puede enviar datos de un aula.
+- [ ] **Wake Lock API**: Implementar para evitar que el teléfono entre en modo suspensión y detenga la medición.
+- [ ] **Calibración**: Crear una interfaz para ajustar el factor de calibración y obtener dB SPL más precisos.
+- [ ] **Mapa de Centros**: (Fuera de alcance actual) Implementar la selección de aula mediante mapa interactivo.
+
+---
+**Última actualización**: 2026-10-12
+**Estado del proyecto**: MVP Funcional Distribuido.

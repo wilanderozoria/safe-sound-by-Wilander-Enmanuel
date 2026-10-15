@@ -1,0 +1,97 @@
+.welcome-screen {
+  position: fixed;
+  inset: 0;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.welcome-content {
+  width: 100%;
+  max-width: 600px;
+  text-align: center;
+}
+
+.brand-large {
+  margin-bottom: 40px;
+}
+
+.brand-mark-large {
+  display: inline-block;
+  width: 64px;
+  height: 64px;
+  background: #2563eb;
+  color: white;
+  font-size: 32px;
+  font-weight: bold;
+  border-radius: 16px;
+  line-height: 64px;
+  text-align: center;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.brand-large h1 {
+  font-size: 32px;
+  margin: 0;
+  color: #1e293b;
+}
+
+.brand-large p {
+  color: #64748b;
+  margin: 8px 0 0;
+}
+
+.welcome-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.option-card {
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 24px;
+  padding: 32px 24px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+}
+
+.option-card:hover {
+  border-color: #2563eb;
+  background: #eff6ff;
+  transform: translateY(-4px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+}
+
+.option-icon {
+  font-size: 48px;
+}
+
+.option-text strong {
+  display: block;
+  font-size: 18px;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.option-text span {
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+@media (max-width: 600px) {
+  .welcome-options {
+    grid-template-columns: 1fr;
+  }
+}

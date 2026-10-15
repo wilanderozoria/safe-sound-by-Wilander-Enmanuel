@@ -1,0 +1,1 @@
+export const SUPABASE_CONFIG = { url: 'https://jshsjyttdfpyiftsdhih.supabase.co', anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpzaHNqeXR0ZGZweWlmdHNkaGloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4MjQ2NTMsImV4cCI6MjEwNzQwMDY1M30.zuOIK1rewIiGBEFVY8Ia74BL7i31cDpEzx378Mlh_lc' };
