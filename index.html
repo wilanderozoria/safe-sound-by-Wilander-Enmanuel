@@ -1,1 +1,200 @@
-<html><body><h1>SafeSound Test</h1></body></html>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeSound - Monitoreo Acústico</title>
+    <link rel="stylesheet" href="src/ui/styles.css">
+    <link rel="stylesheet" href="src/ui/welcome-styles.css">
+    <link rel="stylesheet" href="src/ui/monitor-styles.css">
+</head>
+<body>
+    <div id="app" class="app-shell">
+        <!-- Pantalla de Bienvenida (Welcome Screen) -->
+        <section id="welcomeSection" class="welcome-screen active">
+            <div class="welcome-content">
+                <div class="brand-large">
+                    <div class="brand-mark-large">S</div>
+                    <h1>SafeSound</h1>
+                    <p>Sistema de Monitoreo Acústico Inteligente</p>
+                </div>
+                <div class="welcome-options">
+                    <div class="option-card" data-mode="client">
+                        <div class="option-icon">📱</div>
+                        <div class="option-text">
+                            <strong>Mi teléfono como micrófono</strong>
+                            <span>Convierte este dispositivo en un sensor de ruido para un aula.</span>
+                        </div>
+                        <button class="mode-btn primary">Entrar como Sensor</button>
+                    </div>
+                    <div class="option-card" data-mode="monitor">
+                        <div class="option-icon">🖥️</div>
+                        <div class="option-text">
+                            <strong>Monitoreo de aulas</strong>
+                            <span>Visualiza los niveles de ruido de todas las aulas en tiempo real.</span>
+                        </div>
+                        <button class="mode-btn primary">Entrar como Monitor</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección Local (Medición Individual) -->
+        <section id="localSection" class="section" style="display:none;">
+            <div class="topbar">
+                <div class="brand">
+                    <div class="brand-mark">S</div>
+                    <div>
+                        <strong>SafeSound</strong>
+                        <small>Medición Local</small>
+                    </div>
+                </div>
+                <div class="top-actions">
+                    <button id="fullscreenBtn" class="button secondary">Pantalla Completa</button>
+                    <span id="systemStatus" class="system-status good">Sistema listo</span>
+                </div>
+            </div>
+
+            <main class="app-shell">
+                <div class="hero-grid">
+                    <div class="panel level-card">
+                        <div class="eyebrow">NIVEL ACTUAL</div>
+                        <div class="level-row">
+                            <span id="levelValue">--</span>
+                            <span class="unit">dB</span>
+                        </div>
+                        <div id="levelLabel" class="level-label">Nivel adecuado</div>
+                        <div class="meter">
+                            <div class="meter-fill" id="meterFill"></div>
+                            <div class="warning-marker" id="warningMarker"></div>
+                        </div>
+                        <p class="measurement-note">El nivel se calcula en tiempo real mediante análisis RMS.</p>
+                    </div>
+
+                    <div class="panel status-card" id="statusCard">
+                        <div class="state-icon" id="stateIcon">●</div>
+                        <div class="state-text" id="stateText">SISTEMA LISTO</div>
+                        <div class="state-description" id="stateDescription">Esperando inicio de monitoreo...</div>
+                    </div>
+
+                    <div class="panel session-card">
+                        <div class="session-title">
+                            <strong>Sesión Activa</strong>
+                            <span class="session-live">LIVE</span>
+                        </div>
+                        <div class="session-stat"><span>Duración:</span> <strong id="duration">00:00:00</strong></div>
+                        <div class="session-stat"><span>Promedio:</span> <strong id="average">-- dB</strong></div>
+                        <div class="session-stat"><span>Máximo:</span> <strong id="maximum">-- dB</strong></div>
+                        <div class="session-stat"><span>Tiempo Exceso:</span> <strong id="aboveTime">0s</strong></div>
+                        <div class="session-stat"><span>Eventos:</span> <strong id="eventCount">0</strong></div>
+                        <button id="monitorBtn" class="button primary full">INICIAR MONITOREO</button>
+                    </div>
+                </div>
+
+                <div class="content-grid">
+                    <div class="panel config-panel">
+                        <div class="panel-header">
+                            <h2>Configuración</h2>
+                        </div>
+                        <div class="control-group">
+                            <label>Micrófono</label>
+                            <select id="microphoneSelect" class="select"></select>
+                        </div>
+                        <div class="control-group">
+                            <label>Límite de advertencia (dB) <output id="warningOutput">60</output></label>
+                            <input type="number" id="warningInput" value="60">
+                        </div>
+                        <div class="control-group">
+                            <label>Límite máximo (dB) <output id="thresholdOutput">80</output></label>
+                            <input type="number" id="thresholdInput" value="80">
+                        </div>
+                        <div class="control-group">
+                            <label>Tiempo de exceso (seg) <output id="durationOutput">3</output></label>
+                            <input type="number" id="durationInput" value="3">
+                        </div>
+                        <div class="control-group">
+                            <label>Ventana de historial (seg)</label>
+                            <input type="number" id="historyWindow" value="30">
+                            <input type="number" id="historyWindowConfig" value="30">
+                        </div>
+                        <div class="switch-row">
+                            <input type="checkbox" id="alertInput">
+                            <label>Habilitar Alertas Visuales</label>
+                        </div>
+                        <button id="simulationToggle" class="button secondary">Simulación: OFF</button>
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>Análisis Temporal</h2>
+                        </div>
+                        <div class="chart-wrap">
+                            <canvas id="soundChart"></canvas>
+                            <div id="chartEmpty" class="chart-empty">Inicie el monitoreo para ver el gráfico.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Historial de Eventos</h2>
+                        <button id="clearHistoryBtn" class="button secondary">Limpiar</button>
+                    </div>
+                    <div id="eventsList" class="events-list"></div>
+                </div>
+            </main>
+        </section>
+
+        <!-- Sección Cliente (Sensor Remoto) -->
+        <section id="clientSection" class="section" style="display:none;">
+            <div class="topbar">
+                <div class="brand">
+                    <div class="brand-mark">S</div>
+                    <div>
+                        <strong>SafeSound</strong>
+                        <small>Sensor Remoto</small>
+                    </div>
+                </div>
+                <button class="mode-btn" data-mode="welcome" style="color:white; border-color:white;">← Volver</button>
+            </div>
+            <main class="app-shell">
+                <div class="panel" style="max-width: 600px; margin: 40px auto; text-align: center;">
+                    <h2>Configuración de Transmisión</h2>
+                    <div style="margin: 20px 0; text-align: left;">
+                        <label style="display:block; font-weight:bold; margin-bottom:5px;">ID del Aula</label>
+                        <input type="text" id="roomIdInput" class="select full" style="width:100%; margin-bottom:20px;" placeholder="Ej: Aula-101">
+                        
+                        <label style="display:block; font-weight:bold; margin-bottom:5px;">Agregar Micrófonos</label>
+                        <div style="display:flex; gap:10px; margin-bottom:15px;">
+                            <select id="addMicSelect" class="select" style="flex:1;"></select>
+                            <button id="addMicBtn" class="button secondary">Agregar</button>
+                        </div>
+                        <div id="activeMicsList" style="margin-bottom:20px;"></div>
+                        
+                        <button id="startClientBtn" class="button primary full" style="width:100%; padding:15px; font-size:14px;">INICIAR TRANSMISIÓN</button>
+                    </div>
+                </div>
+            </main>
+        </section>
+
+        <!-- Sección Monitor (Tablero General) -->
+        <section id="monitorSection" class="section" style="display:none;">
+            <div class="topbar">
+                <div class="brand">
+                    <div class="brand-mark">S</div>
+                    <div>
+                        <strong>SafeSound</strong>
+                        <small>Tablero de Control</small>
+                    </div>
+                </div>
+                <button class="mode-btn" data-mode="welcome" style="color:white; border-color:white;">← Volver</button>
+            </div>
+            <main class="app-shell">
+                <div class="monitor-grid" id="monitorGrid"></div>
+            </main>
+        </section>
+    </div>
+
+    <script type="module" src="src/app.js"></script>
+</body>
+</html>
