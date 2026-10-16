@@ -59,9 +59,10 @@ async function switchMode(mode) {
     btn.classList.toggle('active', btn.dataset.mode === mode);
   });
 
-  $('localSection').style.display = mode === 'local' ? 'block' : 'none';
-  $('clientSection').style.display = mode === 'client' ? 'block' : 'none';
-  $('monitorSection').style.display = mode === 'monitor' ? 'block' : 'none';
+  if () .style.display = mode === 'local' ? 'block' : 'none';
+  if () .style.display = mode === 'client' ? 'block' : 'none';
+  if () .style.display = mode === 'monitor' ? 'block' : 'none';
+  if () .style.display = (mode === 'welcome' || !mode) ? 'flex' : 'none';
 
   if (mode === 'monitor') {
     await initMonitorMode();
@@ -74,9 +75,11 @@ async function switchMode(mode) {
 }
 
 document.querySelectorAll('.mode-btn').forEach(btn => {
-  btn.onclick = () => switchMode(btn.dataset.mode);
+  btn.onclick = () => {
+    const mode = btn.dataset.mode || btn.closest('.welcome-card')?.dataset.mode;
+    if (mode) switchMode(mode);
+  };
 });
-
 // --- Monitor Mode ---
 async function initMonitorMode() {
   setStatus('Conectando al monitor...');
